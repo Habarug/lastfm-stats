@@ -1,0 +1,7 @@
+__pycache__
+.ipynb_checkpoints
+archive
+covers
+LastFM-exports
+output
+.DS_Store
