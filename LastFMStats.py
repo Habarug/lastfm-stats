@@ -192,7 +192,10 @@ class LastFMStats:
             plt.plot(self.__dates, cumScrobbles)
 
         plt.legend(
-            self.topArtists[0:nArtists], loc="center left", bbox_to_anchor=(1, 0.5)
+            self.topArtists[0:nArtists],
+            loc="center left",
+            bbox_to_anchor=(1, 0.5),
+            fontsize=self.__font_size_legend,
         )
         plt.ylabel("Total scrobbles", fontsize=self.__font_size_axis_labels)
         fig.patch.set_facecolor("xkcd:white")
@@ -220,7 +223,10 @@ class LastFMStats:
             plt.plot(self.__dates, cumScrobbles)
 
         plt.legend(
-            self.topAlbums[0:nAlbums], loc="center left", bbox_to_anchor=(1, 0.5)
+            self.topAlbums[0:nAlbums],
+            loc="center left",
+            bbox_to_anchor=(1, 0.5),
+            fontsize=self.__font_size_legend,
         )
         plt.ylabel("Total scrobbles", fontsize=self.__font_size_axis_labels)
         fig.patch.set_facecolor("xkcd:white")
@@ -362,3 +368,71 @@ class LastFMStats:
             loc="upper center",
             fontsize=self.__font_size_legend,
         )
+
+    def print_summary(self):
+        if isinstance(self.__year, int):
+            print("Your summary for %i:\n" % self.__year)
+        else:
+            print("Your summary:\n")
+
+        print(
+            "You had %i scrobbles from %i unique tracks, %i artists and %i albums. Wow!\n"
+            % (
+                self.__nScrobbles,
+                len(self.topTracks),
+                len(self.topArtists),
+                len(self.topAlbums),
+            )
+        )
+
+        print("Your most played artist was %s. " % self.topArtists[0])
+        print(self._summary_artist(self.topArtists[0]))
+        print("Your most played album was %s. " % self.topAlbums[0])
+        print(self._summary_album(self.topAlbums[0]))
+
+        self._print_top_tracks()
+
+    def _summary_artist(self, artist):
+        tracks = (
+            self.scrData[self.scrData["artist"] == artist]["track"]
+            .value_counts()[:]
+            .index.tolist()
+        )
+
+        a = "You played their songs %i times!\n" % (
+            len(self.scrData[self.scrData["artist"] == artist])
+        )
+        b = "Your most played track from them was %s, which you played %i times.\n" % (
+            tracks[0],
+            len(self.scrData[self.scrData["track"] == tracks[0]]),
+        )
+
+        return a + b
+
+    def _summary_album(self, album):
+        artist = self.scrData[self.scrData["album"] == self.topAlbums[0]][
+            "artist"
+        ].iloc[0]
+        scrobbles = len(self.scrData[self.scrData["album"] == self.topAlbums[0]])
+        tracks = (
+            self.scrData[self.scrData["album"] == album]["track"]
+            .value_counts()[:]
+            .index.tolist()
+        )
+
+        a = (
+            "%s is an album by %s. \nYou played songs from this album %i times, which corresponds to listening through the whole album %i times! \n"
+            % (album, artist, scrobbles, scrobbles / len(tracks))
+        )
+        b = (
+            "Your most played track from this album was %s, which you played %i times.\n"
+            % (tracks[0], len(self.scrData[self.scrData["track"] == tracks[0]]))
+        )
+        return a + b
+
+    def _print_top_tracks(self, nTracks=10):
+        print("Your most played tracks were:")
+        for idt, track in enumerate(self.topTracks[0:nTracks]):
+            artist = self.scrData[self.scrData["track"] == track]["artist"].iloc[0]
+            scrobbles = len(self.scrData[self.scrData["track"] == track])
+            print("#%i: %s by %s (%i plays)" % (idt + 1, track, artist, scrobbles))
