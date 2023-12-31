@@ -8,14 +8,15 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import math
 
 
 class LastFMStats:
-    font_size_axis_labels   = 20
-    font_size_title         = 26
-    font_size_ticks         = 14
-    font_size_legend        = 18
-    fig_size                = (15, 7)
+    font_size_axis_labels = 20
+    font_size_title = 26
+    font_size_ticks = 14
+    font_size_legend = 18
+    fig_size = (15, 7)
 
     def __init__(self, lastFMExportFile, year=None):
         self.year = year
@@ -265,7 +266,7 @@ class LastFMStats:
                 (wd - 0.4) * 4,
                 self.nScrobbles / (sum(self.week.values()) * 4),
                 artistStr,
-                fontsize= self.font_size_ticks,
+                fontsize=self.font_size_ticks,
                 rotation=0,
             )
             t.set_bbox(dict(facecolor="white", alpha=0.7, edgecolor="black"))
@@ -314,8 +315,50 @@ class LastFMStats:
         for idx, row in enumerate(np.flip(cumScrobbles, 0)):
             ax.fill_between(self.dates, row, zorder=idx)
 
-        ax.legend(np.flip(leg), loc="center left", bbox_to_anchor=(1, 0.5), fontsize = self.font_size_legend)
-        ax.set_ylabel("Total scrobbles", fontsize = self.font_size_axis_labels)
-        ax.xaxis.set_tick_params(labelsize= self.font_size_ticks)
-        ax.yaxis.set_tick_params(labelsize= self.font_size_ticks)
+        ax.legend(
+            np.flip(leg),
+            loc="center left",
+            bbox_to_anchor=(1, 0.5),
+            fontsize=self.font_size_legend,
+        )
+        ax.set_ylabel("Total scrobbles", fontsize=self.font_size_axis_labels)
+        ax.xaxis.set_tick_params(labelsize=self.font_size_ticks)
+        ax.yaxis.set_tick_params(labelsize=self.font_size_ticks)
         fig.patch.set_facecolor("xkcd:white")
+
+    def __moving_average(self, a, n=30):
+        ret = np.cumsum(a, dtype=float)
+        ret[n:] = ret[n:] - ret[:-n]
+        return ret[n - 1 :] / n
+
+    def plot_moving_average_timeline(self, window=30):
+        fig, ax = plt.subplots(1)
+        plt.rcParams["figure.figsize"] = self.fig_size
+        legText = ["Daily scrobbles", "Moving average, window = %i days" % window]
+
+        dailyScrobbles = []
+        for idd, date in enumerate(self.dates):
+            filterDate = self.scrData[self.scrData["date"] == date]
+            dailyScrobbles.append(len(filterDate))
+
+        scrobblesMovingAverage = self.__moving_average(dailyScrobbles, window)
+        datesMovingAverage = self.dates[
+            math.floor(window / 2) - 1 : -math.ceil(window / 2)
+        ]
+
+        ax.plot(self.dates, dailyScrobbles, color="grey", linestyle="--")
+        ax.plot(
+            datesMovingAverage,
+            scrobblesMovingAverage,
+            linewidth=4,
+        )
+
+        ax.set_ylabel("Daily Scrobbles", fontsize=self.font_size_axis_labels)
+        ax.xaxis.set_tick_params(labelsize=self.font_size_ticks)
+        ax.yaxis.set_tick_params(labelsize=self.font_size_ticks)
+
+        ax.legend(
+            legText,
+            loc="upper center",
+            fontsize=self.font_size_legend,
+        )
