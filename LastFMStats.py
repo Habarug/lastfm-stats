@@ -12,40 +12,40 @@ import math
 
 
 class LastFMStats:
-    font_size_axis_labels = 20
-    font_size_title = 26
-    font_size_ticks = 14
-    font_size_legend = 18
-    fig_size = (15, 7)
+    __font_size_axis_labels = 20
+    __font_size_title = 26
+    __font_size_ticks = 14
+    __font_size_legend = 18
+    __fig_size = (15, 7)
 
     def __init__(self, lastFMExportFile, year=None):
-        self.year = year
-        self.import_data(lastFMExportFile)
-        self.coverpy = coverpy.CoverPy()  # instantiate coverpy
+        self.__year = year
+        self.__import_data(lastFMExportFile)
+        self.__coverpy = coverpy.CoverPy()  # instantiate coverpy
 
-    def import_data(self, filename):
-        self.scrData = self.read_scrData(filename)
+    def __import_data(self, filename):
+        self.scrData = self.__read_scrData(filename)
 
-        if isinstance(self.year, int):
-            self.scrData = self.scrData[self.scrData["time"].dt.year == self.year]
+        if isinstance(self.__year, int):
+            self.scrData = self.scrData[self.scrData["time"].dt.year == self.__year]
 
         self.topArtists = self.scrData["artist"].value_counts()[:].index.tolist()
         self.topAlbums = self.scrData["album"].value_counts()[:].index.tolist()
         self.topTracks = self.scrData["track"].value_counts()[:].index.tolist()
 
-        self.dates = pd.date_range(
+        self.__dates = pd.date_range(
             self.scrData["date"].iloc[-1],
             self.scrData["date"].iloc[1] - timedelta(days=1),
             freq="d",
         )
 
-        self.nScrobbles = self.scrData["artist"].size
+        self.__nScrobbles = self.scrData["artist"].size
 
-        self.week = self.weekday_count(
+        self.__week = self.__weekday_count(
             self.scrData["date"].iloc[-1], self.scrData["date"].iloc[1]
         )
 
-    def read_scrData(self, filename):
+    def __read_scrData(self, filename):
         scrData = pd.read_csv(
             filename, header=None, names=["artist", "album", "track", "time"]
         )
@@ -57,7 +57,7 @@ class LastFMStats:
 
         return scrData
 
-    def weekday_count(self, start, end):
+    def __weekday_count(self, start, end):
         week = {}
         for i in range((end - start).days):
             day = calendar.day_name[(start + timedelta(days=i + 1)).weekday()]
@@ -130,14 +130,14 @@ class LastFMStats:
                         plt.imshow(a, extent=extent, aspect="auto", zorder=3)
                     except:
                         try:
-                            art = self.coverpy.get_cover(artistAlbum)
+                            art = self.__coverpy.get_cover(artistAlbum)
                             f = urllib.request.urlretrieve(art.artwork(100), savePath)
                             a = mpimg.imread(savePath)
                             ax3.set_autoscale_on(False)
                             plt.imshow(a, extent=extent, aspect="auto", zorder=3)
                         except:
                             try:
-                                art = self.coverpy.get_cover(
+                                art = self.__coverpy.get_cover(
                                     artist + " " + album.split(" ")[0]
                                 )
                                 f = urllib.request.urlretrieve(
@@ -148,7 +148,7 @@ class LastFMStats:
                                 plt.imshow(a, extent=extent, aspect="auto", zorder=3)
                             except:
                                 try:
-                                    art = self.coverpy.get_cover(album)
+                                    art = self.__coverpy.get_cover(album)
                                     f = urllib.request.urlretrieve(
                                         art.artwork(100), savePath
                                     )
@@ -162,9 +162,9 @@ class LastFMStats:
 
                 bottom += count
 
-        plt.xticks(rotation=45, fontsize=self.font_size_ticks)
-        plt.yticks(fontsize=self.font_size_ticks)
-        plt.ylabel("Scrobble count", fontsize=self.font_size_axis_labels)
+        plt.xticks(rotation=45, fontsize=self.__font_size_ticks)
+        plt.yticks(fontsize=self.__font_size_ticks)
+        plt.ylabel("Scrobble count", fontsize=self.__font_size_axis_labels)
         plt.xlim(-0.5, nArtists - 1.5)
         plt.ylim(0, self.scrData[self.scrData["artist"] == self.topArtists[0]].shape[0])
         fig3.patch.set_facecolor("xkcd:white")
@@ -177,24 +177,24 @@ class LastFMStats:
 
     def plot_top_artists_timeline(self, nArtists=15, saveFig=False):
         fig, ax = plt.subplots(1)
-        plt.rcParams["figure.figsize"] = self.fig_size
+        plt.rcParams["figure.figsize"] = self.__fig_size
 
         for artist in self.topArtists[0:nArtists]:
             dailyScrobbles = []
             cumScrobbles = []
             filterArtist = self.scrData[(self.scrData["artist"] == artist)]
 
-            for date in self.dates:
+            for date in self.__dates:
                 filterDate = filterArtist[(filterArtist["date"] == date)]
                 dailyScrobbles.append(filterDate.shape[0])
                 cumScrobbles.append(sum(dailyScrobbles))
 
-            plt.plot(self.dates, cumScrobbles)
+            plt.plot(self.__dates, cumScrobbles)
 
         plt.legend(
             self.topArtists[0:nArtists], loc="center left", bbox_to_anchor=(1, 0.5)
         )
-        plt.ylabel("Total scrobbles", fontsize=self.font_size_axis_labels)
+        plt.ylabel("Total scrobbles", fontsize=self.__font_size_axis_labels)
         fig.patch.set_facecolor("xkcd:white")
         plt.tight_layout()
 
@@ -205,24 +205,24 @@ class LastFMStats:
 
     def plot_top_albums_timeline(self, nAlbums=15, saveFig=False):
         fig, ax = plt.subplots(1)
-        plt.rcParams["figure.figsize"] = self.fig_size
+        plt.rcParams["figure.figsize"] = self.__fig_size
 
         for album in self.topAlbums[0:nAlbums]:
             dailyScrobbles = []
             cumScrobbles = []
             filterAlbum = self.scrData[(self.scrData["album"] == album)]
 
-            for date in self.dates:
+            for date in self.__dates:
                 filterDate = filterAlbum[(filterAlbum["date"] == date)]
                 dailyScrobbles.append(filterDate.shape[0])
                 cumScrobbles.append(sum(dailyScrobbles))
 
-            plt.plot(self.dates, cumScrobbles)
+            plt.plot(self.__dates, cumScrobbles)
 
         plt.legend(
             self.topAlbums[0:nAlbums], loc="center left", bbox_to_anchor=(1, 0.5)
         )
-        plt.ylabel("Total scrobbles", fontsize=self.font_size_axis_labels)
+        plt.ylabel("Total scrobbles", fontsize=self.__font_size_axis_labels)
         fig.patch.set_facecolor("xkcd:white")
         plt.tight_layout()
 
@@ -249,7 +249,7 @@ class LastFMStats:
 
         for wd in wdNums:
             filterWd = self.scrData[(self.scrData["wd"] == wd)]
-            wdCount.append(filterWd["wd"].size / self.week[wds[wd]])
+            wdCount.append(filterWd["wd"].size / self.__week[wds[wd]])
 
             topArtistsWD = filterWd["artist"].value_counts()[:].index.tolist()
 
@@ -264,17 +264,17 @@ class LastFMStats:
 
             t = ax.text(
                 (wd - 0.4) * 4,
-                self.nScrobbles / (sum(self.week.values()) * 4),
+                self.__nScrobbles / (sum(self.__week.values()) * 4),
                 artistStr,
-                fontsize=self.font_size_ticks,
+                fontsize=self.__font_size_ticks,
                 rotation=0,
             )
             t.set_bbox(dict(facecolor="white", alpha=0.7, edgecolor="black"))
 
         ax.bar(wdNums * 4, wdCount)
         ax.set_xticks(wdNums * 4, wds)
-        ax.tick_params(axis="both", labelsize=self.font_size_ticks)
-        ax.set_ylabel("Average daily scrobbles", fontsize=self.font_size_axis_labels)
+        ax.tick_params(axis="both", labelsize=self.__font_size_ticks)
+        ax.set_ylabel("Average daily scrobbles", fontsize=self.__font_size_axis_labels)
         fig.patch.set_facecolor("xkcd:white")
         plt.tight_layout()
 
@@ -285,18 +285,18 @@ class LastFMStats:
 
     def plot_stacked_timeline(self, nArtists=15):
         fig, ax = plt.subplots(1)
-        plt.rcParams["figure.figsize"] = self.fig_size
+        plt.rcParams["figure.figsize"] = self.__fig_size
 
         # All other artists first
         filterArtist = self.scrData[
             self.scrData["artist"].isin(self.topArtists[nArtists:-1])
         ]
 
-        dailyScrobbles = np.zeros([nArtists + 1, len(self.dates)], dtype=int)
-        cumScrobbles = np.zeros([nArtists + 1, len(self.dates)], dtype=int)
+        dailyScrobbles = np.zeros([nArtists + 1, len(self.__dates)], dtype=int)
+        cumScrobbles = np.zeros([nArtists + 1, len(self.__dates)], dtype=int)
         leg = ["other"]
 
-        for idx, date in enumerate(self.dates):
+        for idx, date in enumerate(self.__dates):
             filterDate = filterArtist[filterArtist["date"] == date]
             dailyScrobbles[0, idx] = filterDate.shape[0]
             cumScrobbles[0, idx] = sum(dailyScrobbles[0, 0:])
@@ -305,7 +305,7 @@ class LastFMStats:
             filterArtist = self.scrData[self.scrData["artist"] == artist]
             leg.append(artist)
 
-            for idx, date in enumerate(self.dates):
+            for idx, date in enumerate(self.__dates):
                 filterDate = filterArtist[filterArtist["date"] == date]
                 dailyScrobbles[ida + 1, idx] = filterDate.shape[0]
                 cumScrobbles[ida + 1, idx] = sum(dailyScrobbles[ida + 1, 0:idx])
@@ -313,17 +313,17 @@ class LastFMStats:
             cumScrobbles[ida + 1, :] += cumScrobbles[ida, :]
 
         for idx, row in enumerate(np.flip(cumScrobbles, 0)):
-            ax.fill_between(self.dates, row, zorder=idx)
+            ax.fill_between(self.__dates, row, zorder=idx)
 
         ax.legend(
             np.flip(leg),
             loc="center left",
             bbox_to_anchor=(1, 0.5),
-            fontsize=self.font_size_legend,
+            fontsize=self.__font_size_legend,
         )
-        ax.set_ylabel("Total scrobbles", fontsize=self.font_size_axis_labels)
-        ax.xaxis.set_tick_params(labelsize=self.font_size_ticks)
-        ax.yaxis.set_tick_params(labelsize=self.font_size_ticks)
+        ax.set_ylabel("Total scrobbles", fontsize=self.__font_size_axis_labels)
+        ax.xaxis.set_tick_params(labelsize=self.__font_size_ticks)
+        ax.yaxis.set_tick_params(labelsize=self.__font_size_ticks)
         fig.patch.set_facecolor("xkcd:white")
 
     def __moving_average(self, a, n=30):
@@ -333,32 +333,32 @@ class LastFMStats:
 
     def plot_moving_average_timeline(self, window=30):
         fig, ax = plt.subplots(1)
-        plt.rcParams["figure.figsize"] = self.fig_size
+        plt.rcParams["figure.figsize"] = self.__fig_size
         legText = ["Daily scrobbles", "Moving average, window = %i days" % window]
 
         dailyScrobbles = []
-        for idd, date in enumerate(self.dates):
+        for idd, date in enumerate(self.__dates):
             filterDate = self.scrData[self.scrData["date"] == date]
             dailyScrobbles.append(len(filterDate))
 
         scrobblesMovingAverage = self.__moving_average(dailyScrobbles, window)
-        datesMovingAverage = self.dates[
+        datesMovingAverage = self.__dates[
             math.floor(window / 2) - 1 : -math.ceil(window / 2)
         ]
 
-        ax.plot(self.dates, dailyScrobbles, color="grey", linestyle="--")
+        ax.plot(self.__dates, dailyScrobbles, color="grey", linestyle="--")
         ax.plot(
             datesMovingAverage,
             scrobblesMovingAverage,
             linewidth=4,
         )
 
-        ax.set_ylabel("Daily Scrobbles", fontsize=self.font_size_axis_labels)
-        ax.xaxis.set_tick_params(labelsize=self.font_size_ticks)
-        ax.yaxis.set_tick_params(labelsize=self.font_size_ticks)
+        ax.set_ylabel("Daily Scrobbles", fontsize=self.__font_size_axis_labels)
+        ax.xaxis.set_tick_params(labelsize=self.__font_size_ticks)
+        ax.yaxis.set_tick_params(labelsize=self.__font_size_ticks)
 
         ax.legend(
             legText,
             loc="upper center",
-            fontsize=self.font_size_legend,
+            fontsize=self.__font_size_legend,
         )
