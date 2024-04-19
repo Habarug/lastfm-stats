@@ -6,3 +6,4 @@ LastFM-exports
 output
 .DS_Store
 user_api_key.json
+.venv
