@@ -49,9 +49,9 @@ class LastFMStats:
         scrData = pd.read_csv(
             filename, header=None, names=["artist", "album", "track", "time"]
         )
-        scrData["time"] = pd.to_datetime(scrData["time"])
+        scrData["time"] = pd.to_datetime(scrData["time"], format = "%d %b %Y %H:%M")
         scrData["date"] = scrData["time"].dt.date
-        scrData["date"] = pd.to_datetime(scrData["date"])
+        scrData["date"] = pd.to_datetime(scrData["date"], format = "%d %b %Y %H:%M")
         scrData["wd"] = scrData["time"].dt.weekday
         scrData["artist"].size
 
